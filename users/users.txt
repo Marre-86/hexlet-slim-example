@@ -1,0 +1,11 @@
+{"nickname":"Artem2","email":"timtimoha@yandex.ru2"}
+{"nickname":"Artem","email":"timtimoha@yandex.ru"}
+{"nickname":"Marina","email":"marina@mail.ru"}
+{"nickname":"Rita","email":"ewdew@dewdew"}
+{"nickname":"Varya","email":"var@jjwedew"}
+{"nickname":"John","email":"12@ewdwed"}
+{"nickname":"Yuri","email":"yura@best.ca"}
+{"nickname":"Vasya","email":"ded@dwedewd"}
+{"nickname":"Vasya2","email":"ded@dwedewd2"}
+{"nickname":"Vasya2","email":"ded@dwedewd2"}
+{"nickname":"Irina","email":"ded@dwedewd2"}

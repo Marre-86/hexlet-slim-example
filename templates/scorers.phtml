@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="stylesheet" href="<?php echo '/css/scorers.css'; ?>">
+</head>
+<body>
+<?php if ($flash) : ?>
+<p style="color:chartreuse"><?= $flash['success'][0] ?></p>
+<?php endif; ?>
+<h1>Top England Goal Scorers</h1>
+
+<table id="racetimes">
+    <tr id="firstrow">
+      <th>Player</th>
+      <th>Goals</th>
+      <th>First</th>
+      <th>Latest</th>
+    </tr>
+   <?php foreach ($scorers as $scorer) : ?>
+    <tr>
+      <td><?= $scorer['email'] ?></td>
+      <td><?= $scorer['nickname'] ?></td>
+      <td>53</td>
+      <td>53</td>
+    </tr>
+   <?php endforeach; ?>
+</table>

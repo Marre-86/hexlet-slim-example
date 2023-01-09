@@ -1,0 +1,22 @@
+{
+    "name": "marre/hexlet-slim-example",
+    "autoload": {
+        "psr-4": {
+            "Marre\\HexletSlimExample\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Artem Pokhiliuk",
+            "email": "timtimoha@yandex.ru"
+        }
+    ],
+    "require": {
+        "slim/slim": "^4.11",
+        "slim/psr7": "^1.6",
+        "slim/http": "^1.3",
+        "slim/php-view": "^3.2",
+        "php-di/php-di": "^6.4",
+        "slim/flash": "^0.4.0"
+    }
+}
