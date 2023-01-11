@@ -1,10 +1,14 @@
 <?php
 
+namespace App;
+
 // Подключение автозагрузки через composer
 require __DIR__ . '/../vendor/autoload.php';
-
+	
+use App\Functions;
 use Slim\Factory\AppFactory;
 use DI\Container;
+use Slim\Middleware\MethodOverrideMiddleware;
 
 if (PHP_SAPI === 'cli-server' && $_SERVER['SCRIPT_FILENAME'] !== __FILE__) {
     return false;
@@ -22,7 +26,7 @@ $container->set('flash', function () {
 
 AppFactory::setContainer($container);
 $app = AppFactory::create();
-
+$app->add(MethodOverrideMiddleware::class);
 $app->addErrorMiddleware(true, true, true);
 
 $router = $app->getRouteCollector()->getRouteParser();
@@ -33,38 +37,85 @@ $app->get('/', function ($request, $response) use ($router) {
     $params = ['greeting' => 'Welcome to Slim!',
                'router' => $router,  // unfort. didnt find a way to get all routes out and throw them in a loop
                'dynamic_route_example' => $router->urlFor('dynamic_route_example', ['id' => 'Zaluzhny']),
+               'post_form_example' => $router->urlFor('post_form_example'),
                'get_form_example' => $router->urlFor('get_form_example'),
-               'post_form_example' => $router->urlFor('post_form_example')];
+               'index' => $router->urlFor('index')];
     return $this->get('renderer')->render($response, "main.phtml", $params);
 });
 
-$app->post('/users2', function ($request, $response) {
-    $user = $request->getParsedBodyParam('user');
-    $file = __DIR__ . '/../users/users.txt';
-    file_put_contents($file, trim(json_encode($user)) . PHP_EOL, FILE_APPEND | LOCK_EX);
-    $this->get('flash')->addMessage('success', 'User added!');
-    return $response->withRedirect('/users2', 302);
+$app->patch('/users2/{id}', function ($req, $res, $args) use ($router) {                 // 6
+    $scorer = $req->getParsedBodyParam('scorer');
+    $errors = [];
+    if (strlen($scorer['nickname']) < 2) {
+        $errors['nickname'] = 'This field should be longer than one character';
+    }
+    if (count($errors) === 0) {
+        replace($args['id'], $scorer);
+        $this->get('flash')->addMessage('success', 'User has been updated!');
+        return $res->withRedirect($router->urlFor('index'), 302);
+    }
+    $params = ['scorer' => $scorer, 'errors' => $errors];
+    return $this->get('renderer')->render($res, 'users/edit.phtml', $params);
 });
 
-$app->get('/users2', function ($request, $response) {
+$app->get('/users2/{id}/edit', function ($req, $res, $args) {                            // 5
+    $scorerFound = find($args['id']);
+    if (!$scorerFound) {
+        return $response->withStatus(405);
+    }
+    $params = ['scorer' => $scorerFound, 'errors' => [] ];
+    return $this->get('renderer')->render($res, 'users/edit.phtml', $params);
+});
+
+$app->post('/users2', function ($request, $response) use ($router) {                    // 4
+    $user = $request->getParsedBodyParam('user');
+    $file = __DIR__ . '/../users/users.txt';
+    $errors = [];
+    if (strlen($user['nickname']) < 2) {
+        $errors['nickname'] = 'This field should be longer than one character';
+    }
+    if (count($errors) === 0) {
+        file_put_contents($file, trim(json_encode($user)) . PHP_EOL, FILE_APPEND);
+        $this->get('flash')->addMessage('success', 'User added!');
+        return $response->withRedirect($router->urlFor('index'), 302);
+    }
+    $params = ['user' => $user, 'errors' => $errors];
+    return $this->get('renderer')->render($response, "users/new.phtml", $params);
+});
+
+$app->get('/users2', function ($request, $response) {                     // 1 index
     $file = __DIR__ . '/../users/users.txt';
     $lines = explode(PHP_EOL, trim(file_get_contents($file)));
     $scorers = array();
+    $page = $request->getQueryParam('page', 1);
     foreach ($lines as $line) {
         $scorers[] = json_decode($line, true);
     }
+    $scorersCurrentPage = array_slice($scorers, $page * 5 - 5, 5);
+    if (empty($scorersCurrentPage)) {
+        return $response->withStatus(404);
+    }
     $flashes = $this->get('flash')->getMessages();
-    $params = ['scorers' => $scorers, 'flash' => $flashes];
+    $params = ['scorers' => $scorersCurrentPage, 'page' => $page, 'flash' => $flashes];
     return $this->get('renderer')->render($response, 'scorers.phtml', $params);
-});
+})->setName('index');
 
-$app->get('/users2/new', function ($request, $response) {
+$app->get('/users2/new', function ($request, $response) {                 // 3
     $params = [
         'user' => ['nickname' => '', 'email' => ''],
         'errors' => []
     ];
     return $this->get('renderer')->render($response, "users/new.phtml", $params);
 })->setName('post_form_example');
+
+$app->get('/users2/{id}', function ($request, $response, $args) {        // 2 show
+    $scorerFound = find($args['id']);
+    if (!$scorerFound) {
+        return $response->withStatus(404);
+    }
+    $params = ['scorer' => $scorerFound];
+    return $this->get('renderer')->render($response, 'show.phtml', $params);
+});
 
 $app->get('/users/{id}', function ($request, $response, $args) {
     $params = ['id' => $args['id'], 'nickname' => 'user-' . $args['id']];
@@ -90,3 +141,4 @@ $app->get('/courses/{id}', function ($request, $response, array $args) {
 });
 
 $app->run();
+

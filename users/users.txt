@@ -1,11 +1,5 @@
-{"nickname":"Artem2","email":"timtimoha@yandex.ru2"}
-{"nickname":"Artem","email":"timtimoha@yandex.ru"}
-{"nickname":"Marina","email":"marina@mail.ru"}
-{"nickname":"Rita","email":"ewdew@dewdew"}
-{"nickname":"Varya","email":"var@jjwedew"}
-{"nickname":"John","email":"12@ewdwed"}
-{"nickname":"Yuri","email":"yura@best.ca"}
-{"nickname":"Vasya","email":"ded@dwedewd"}
-{"nickname":"Vasya2","email":"ded@dwedewd2"}
-{"nickname":"Vasya2","email":"ded@dwedewd2"}
-{"nickname":"Irina","email":"ded@dwedewd2"}
+{"id":"63bc531f67df2","nickname":"Valera","email":"val@mail.ru"}
+{"id":"63bc5ae47f4c8","nickname":"John","email":"jonny@yandex.ru"}
+{"id":"63bedeb6b2e3c","nickname":"Marina2","email":"vtg@dfv"}
+{"id":"63bedecc84cf5","nickname":"dvgfbgf","email":"vtg@dfv"}
+{"id":"63bedee37db11","nickname":"Fedor","email":"pedor@dfv"}

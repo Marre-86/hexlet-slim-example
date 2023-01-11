@@ -1,0 +1,23 @@
+<form action="/users2/<?= htmlspecialchars($scorer['id']) ?>" method="post">
+    <input type="hidden" name="_METHOD" value="PATCH">
+    <input type="hidden" name="scorer[id]" value="<?= htmlspecialchars($scorer['id']) ?>">
+    <div>
+      <label>
+          Nickname
+          <input type="text" name="scorer[nickname]" value="<?= htmlspecialchars($scorer['nickname'] ?? ''); ?>">
+      </label>
+      <?php if (isset($errors['nickname'])): ?>
+          <div><?= $errors['nickname'] ?></div>
+      <?php endif ?>
+    </div>
+    <div>
+      <label>
+          Email
+          <input type="email" required name="scorer[email]" value="<?= htmlspecialchars($scorer['email'] ?? ''); ?>">
+      </label>
+      <?php if (isset($errors['email'])): ?>
+          <div><?= $errors['email'] ?></div>
+      <?php endif ?>
+    </div>
+    <input type="submit" value="Update">
+</form>

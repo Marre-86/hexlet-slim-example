@@ -7,6 +7,12 @@
 <?php if ($flash) : ?>
 <p style="color:chartreuse"><?= $flash['success'][0] ?></p>
 <?php endif; ?>
+
+<div style="text-align:center">
+<a href="/users2?page=<?= $page + 1 ?>">вперед</a>&nbsp;&nbsp;&nbsp;
+<a href="/users2?page=<?= $page - 1 ?>">назад</a>
+</div>
+
 <h1>Top England Goal Scorers</h1>
 
 <table id="racetimes">
@@ -20,8 +26,8 @@
     <tr>
       <td><?= $scorer['email'] ?></td>
       <td><?= $scorer['nickname'] ?></td>
-      <td>53</td>
-      <td>53</td>
+      <td><a href="/users2/<?= $scorer['id'] ?>">DETAILED INFO...</a></td>
+      <td><a href="/users2/<?= $scorer['id'] ?>/edit">EDIT INFO...</a></td>
     </tr>
    <?php endforeach; ?>
 </table>

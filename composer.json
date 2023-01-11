@@ -3,7 +3,10 @@
     "autoload": {
         "psr-4": {
             "Marre\\HexletSlimExample\\": "src/"
-        }
+        },
+        "files": [
+            "src/Functions.php"
+        ]
     },
     "authors": [
         {
