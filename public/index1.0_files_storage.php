@@ -51,12 +51,6 @@ $app->delete('/users2/{id}', function ($req, $res, $args) use ($router) {       
 
 $app->patch('/users2/{id}', function ($req, $res, $args) use ($router) {                 // 6
     $scorer = $req->getParsedBodyParam('scorer');
-    $cookies = json_decode($req->getCookieParam('cookie', json_encode([])), true);
-    $cookiesPatched = array();
-    foreach ($cookies as $cookie) {
-          $cookiesPatched[] = ($cookie['id'] === $args['id']) ? $scorer : $cookie;
-    }
-    $encoded = json_encode($cookiesPatched);
     $errors = [];
     if (strlen($scorer['nickname']) < 2) {
         $errors['nickname'] = 'This field should be longer than one character';
@@ -64,19 +58,14 @@ $app->patch('/users2/{id}', function ($req, $res, $args) use ($router) {        
     if (count($errors) === 0) {
         replace($args['id'], $scorer);
         $this->get('flash')->addMessage('success', 'User has been updated!');
-        return $res->withHeader('Set-Cookie', "cookie={$encoded}")->withRedirect($router->urlFor('index'), 302);
+        return $res->withRedirect($router->urlFor('index'), 302);
     }
     $params = ['scorer' => $scorer, 'errors' => $errors];
     return $this->get('renderer')->render($res, 'users/edit.phtml', $params);
 });
 
 $app->get('/users2/{id}/edit', function ($req, $res, $args) {                            // 5
-    $cookies = json_decode($req->getCookieParam('cookie', json_encode([])), true);
-    foreach ($cookies as $cookie) {
-          if ($cookie['id'] === $args['id']) {
-              $scorerFound = $cookie;
-          }
-    }
+    $scorerFound = find($args['id']);
     if (!$scorerFound) {
         return $response->withStatus(405);
     }
@@ -86,32 +75,31 @@ $app->get('/users2/{id}/edit', function ($req, $res, $args) {                   
 
 $app->post('/users2', function ($request, $response) use ($router) {                    // 4
     $user = $request->getParsedBodyParam('user');
-    $cookie = json_decode($request->getCookieParam('cookie', json_encode([])), true);
-    $cookie[] = $user;
-    $encodedCookie = json_encode($cookie);
+    $file = __DIR__ . '/../users/users.txt';
     $errors = [];
     if (strlen($user['nickname']) < 2) {
         $errors['nickname'] = 'This field should be longer than one character';
     }
     if (count($errors) === 0) {
-        $this->get('flash')->addMessage('success', $encodedCookie . 'User added!');
-        return $response->withHeader('Set-Cookie', "cookie={$encodedCookie}")->withRedirect($router->urlFor('index'), 302);
+        file_put_contents($file, trim(json_encode($user)) . PHP_EOL, FILE_APPEND);
+        $this->get('flash')->addMessage('success', 'User added!');
+        return $response->withRedirect($router->urlFor('index'), 302);
     }
     $params = ['user' => $user, 'errors' => $errors];
     return $this->get('renderer')->render($response, "users/new.phtml", $params);
 });
 
 $app->get('/users2', function ($request, $response) use ($router) {                     // 1 index
-    $cookies = json_decode($request->getCookieParam('cookie', json_encode([])), true);
-    var_dump($cookies);
+    $file = __DIR__ . '/../users/users.txt';
+    $lines = explode(PHP_EOL, trim(file_get_contents($file)));
     $scorers = array();
     $page = $request->getQueryParam('page', 1);
-    foreach ($cookies as $cookie) {
-          $scorers[] = $cookie;
+    foreach ($lines as $line) {
+        $scorers[] = json_decode($line, true);
     }
     $scorersCurrentPage = array_slice($scorers, $page * 5 - 5, 5);
     if (empty($scorersCurrentPage)) {
-        return $response->write('No items on the list yet (or this page does not exist)')->withStatus(404);
+        return $response->withStatus(404);
     }
     $flashes = $this->get('flash')->getMessages();
     $params = ['scorers' => $scorersCurrentPage, 'page' => $page, 'flash' => $flashes,
@@ -128,12 +116,7 @@ $app->get('/users2/new', function ($request, $response) {                 // 3
 })->setName('post_form_example');
 
 $app->get('/users2/{id}', function ($request, $response, $args) {        // 2 show
-    $cookies = json_decode($request->getCookieParam('cookie', json_encode([])), true);
-    foreach ($cookies as $cookie) {
-          if ($cookie['id'] === $args['id']) {
-              $scorerFound = $cookie;
-          }
-    }
+    $scorerFound = find($args['id']);
     if (!$scorerFound) {
         return $response->withStatus(404);
     }
