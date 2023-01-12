@@ -31,3 +31,17 @@ function replace($id, $subject)
     }
     file_put_contents($file, implode(PHP_EOL, $updatedScorers) . PHP_EOL);
 }
+
+function destroy($id)
+{
+    $file = __DIR__ . '/../users/users.txt';
+    $scorers = explode(PHP_EOL, trim(file_get_contents($file)));
+    $updatedScorers = array();
+    foreach ($scorers as $line) {
+        $scorer = json_decode($line, true);
+        if (($scorer['id']) !== $id) {
+            $updatedScorers[] = json_encode($scorer);
+        }
+    }
+    file_put_contents($file, implode(PHP_EOL, $updatedScorers) . PHP_EOL);
+}

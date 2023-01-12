@@ -15,19 +15,28 @@
 
 <h1>Top England Goal Scorers</h1>
 
+<form style="padding-left:200px; margin-bottom:8px" action="<?= $post_form_example ?>">
+    <input type="submit" value="Add User">
+</form>
+
 <table id="racetimes">
     <tr id="firstrow">
       <th>Player</th>
       <th>Goals</th>
       <th>First</th>
       <th>Latest</th>
-    </tr>
+      <th>Latest</th>
+   </tr>
    <?php foreach ($scorers as $scorer) : ?>
     <tr>
       <td><?= $scorer['email'] ?></td>
       <td><?= $scorer['nickname'] ?></td>
       <td><a href="/users2/<?= $scorer['id'] ?>">DETAILED INFO...</a></td>
       <td><a href="/users2/<?= $scorer['id'] ?>/edit">EDIT INFO...</a></td>
+      <td><form action="/users2/<?= $scorer['id'] ?>" method="post">
+              <input type="hidden" name="_METHOD" value="DELETE">
+              <input type="submit" value="Remove">
+          </form></td>
     </tr>
    <?php endforeach; ?>
 </table>

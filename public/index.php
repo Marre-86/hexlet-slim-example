@@ -43,6 +43,12 @@ $app->get('/', function ($request, $response) use ($router) {
     return $this->get('renderer')->render($response, "main.phtml", $params);
 });
 
+$app->delete('/users2/{id}', function ($req, $res, $args) use ($router) {                                  // 7
+    destroy($args['id']);
+    $this->get('flash')->addMessage('success', 'User has been removed');
+    return $res->withRedirect($router->urlFor('index'));
+});
+
 $app->patch('/users2/{id}', function ($req, $res, $args) use ($router) {                 // 6
     $scorer = $req->getParsedBodyParam('scorer');
     $errors = [];
@@ -83,7 +89,7 @@ $app->post('/users2', function ($request, $response) use ($router) {            
     return $this->get('renderer')->render($response, "users/new.phtml", $params);
 });
 
-$app->get('/users2', function ($request, $response) {                     // 1 index
+$app->get('/users2', function ($request, $response) use ($router) {                     // 1 index
     $file = __DIR__ . '/../users/users.txt';
     $lines = explode(PHP_EOL, trim(file_get_contents($file)));
     $scorers = array();
@@ -96,7 +102,8 @@ $app->get('/users2', function ($request, $response) {                     // 1 i
         return $response->withStatus(404);
     }
     $flashes = $this->get('flash')->getMessages();
-    $params = ['scorers' => $scorersCurrentPage, 'page' => $page, 'flash' => $flashes];
+    $params = ['scorers' => $scorersCurrentPage, 'page' => $page, 'flash' => $flashes,
+               'post_form_example' => $router->urlFor('post_form_example')];
     return $this->get('renderer')->render($response, 'scorers.phtml', $params);
 })->setName('index');
 
