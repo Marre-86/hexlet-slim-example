@@ -44,9 +44,16 @@ $app->get('/', function ($request, $response) use ($router) {
 });
 
 $app->delete('/users2/{id}', function ($req, $res, $args) use ($router) {                                  // 7
-    destroy($args['id']);
+    $cookies = json_decode($req->getCookieParam('cookie', json_encode([])), true);
+    $cookiesDeleted = array();
+    foreach ($cookies as $cookie) {
+          if ($cookie['id'] !== $args['id']) {
+              $cookiesDeleted[] = $cookie;
+          }
+    }
+    $encoded = json_encode($cookiesDeleted);
     $this->get('flash')->addMessage('success', 'User has been removed');
-    return $res->withRedirect($router->urlFor('index'));
+    return $res->withHeader('Set-Cookie', "cookie={$encoded}; path=/")->withRedirect($router->urlFor('index'));
 });
 
 $app->patch('/users2/{id}', function ($req, $res, $args) use ($router) {                 // 6
@@ -62,9 +69,8 @@ $app->patch('/users2/{id}', function ($req, $res, $args) use ($router) {        
         $errors['nickname'] = 'This field should be longer than one character';
     }
     if (count($errors) === 0) {
-        replace($args['id'], $scorer);
         $this->get('flash')->addMessage('success', 'User has been updated!');
-        return $res->withHeader('Set-Cookie', "cookie={$encoded}")->withRedirect($router->urlFor('index'), 302);
+        return $res->withHeader('Set-Cookie', "cookie={$encoded}; path=/")->withRedirect($router->urlFor('index'), 302);
     }
     $params = ['scorer' => $scorer, 'errors' => $errors];
     return $this->get('renderer')->render($res, 'users/edit.phtml', $params);
@@ -94,8 +100,8 @@ $app->post('/users2', function ($request, $response) use ($router) {            
         $errors['nickname'] = 'This field should be longer than one character';
     }
     if (count($errors) === 0) {
-        $this->get('flash')->addMessage('success', $encodedCookie . 'User added!');
-        return $response->withHeader('Set-Cookie', "cookie={$encodedCookie}")->withRedirect($router->urlFor('index'), 302);
+        $this->get('flash')->addMessage('success', 'User added!');
+        return $response->withHeader('Set-Cookie', "cookie={$encodedCookie};  path=/")->withRedirect($router->urlFor('index'), 302);
     }
     $params = ['user' => $user, 'errors' => $errors];
     return $this->get('renderer')->render($response, "users/new.phtml", $params);
@@ -103,7 +109,6 @@ $app->post('/users2', function ($request, $response) use ($router) {            
 
 $app->get('/users2', function ($request, $response) use ($router) {                     // 1 index
     $cookies = json_decode($request->getCookieParam('cookie', json_encode([])), true);
-    var_dump($cookies);
     $scorers = array();
     $page = $request->getQueryParam('page', 1);
     foreach ($cookies as $cookie) {
