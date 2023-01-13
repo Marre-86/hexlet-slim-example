@@ -1,5 +1,17 @@
 <h1><?= $greeting ?></h1>
+<form action="/" method="post">
+    <div>
+      <label>
+          Code name
+          <input type="text" name="login[codename]" value="">
+      </label>
+      <?php if (isset($errors['invalid_login'])): ?>
+          <div><?= $errors['invalid_login'] ?></div>
+      <?php endif ?>
+    </div>
+    <input type="submit" value="Login">
+</form>
+<?php if (isset($get_form_example)): ?>
 <a href="<?= $get_form_example ?>">Search example</a><br>
-<a href="<?= $index ?>">List of Users</a><br>
 <a href="<?= $dynamic_route_example ?>">Dynamic route example</a><br>
-<a href="<?= $post_form_example ?>">Add User</a>
+<?php endif ?>

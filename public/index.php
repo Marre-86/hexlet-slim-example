@@ -4,7 +4,7 @@ namespace App;
 
 // Подключение автозагрузки через composer
 require __DIR__ . '/../vendor/autoload.php';
-	
+
 use App\Functions;
 use Slim\Factory\AppFactory;
 use DI\Container;
@@ -15,6 +15,7 @@ if (PHP_SAPI === 'cli-server' && $_SERVER['SCRIPT_FILENAME'] !== __FILE__) {
 }
 
 session_start();
+$_SESSION['accepted_login'] = ['999', '777'];
 
 $container = new Container();
 $container->set('renderer', function () {
@@ -33,13 +34,30 @@ $router = $app->getRouteCollector()->getRouteParser();
 
 $users = ['mike', 'mishel', 'adel', 'keks', 'kamila'];
 
+$app->post('/', function ($req, $res) use ($router) {
+    if ($req->getParsedBodyParam('logout') === true) {
+        
+        $_SESSION = [];
+        session_destroy();
+    }
+    $login = $req->getParsedBodyParam('login');
+    if (in_array($login['codename'], $_SESSION['accepted_login'])) {
+        $username = $login['codename'];
+        return $res->withHeader('Set-Cookie', "logged_in_as={$username}; path=/")->withRedirect($router->urlFor('post_form_example'));
+    } else {
+        $errors = [];
+        $errors['invalid_login'] = 'This login is not accepted. Try again';
+    }
+    $params = ['greeting' => 'No mistakes anymore, motherfucker!', 'errors' => $errors];
+    return $this->get('renderer')->render($res->withHeader('Set-Cookie', "logged_in_as=1; path=/; MAX-AGE=-1"), 'main.phtml', $params);
+});
+
 $app->get('/', function ($request, $response) use ($router) {
-    $params = ['greeting' => 'Welcome to Slim!',
+    $params = ['greeting' => 'Welcome to Slim! Login please',
                'router' => $router,  // unfort. didnt find a way to get all routes out and throw them in a loop
                'dynamic_route_example' => $router->urlFor('dynamic_route_example', ['id' => 'Zaluzhny']),
-               'post_form_example' => $router->urlFor('post_form_example'),
                'get_form_example' => $router->urlFor('get_form_example'),
-               'index' => $router->urlFor('index')];
+               'index' => $router->urlFor('post_form_example')];
     return $this->get('renderer')->render($response, "main.phtml", $params);
 });
 
@@ -111,16 +129,21 @@ $app->get('/users2', function ($request, $response) use ($router) {             
     $cookies = json_decode($request->getCookieParam('cookie', json_encode([])), true);
     $scorers = array();
     $page = $request->getQueryParam('page', 1);
+    $username = $request->getCookieParam('logged_in_as', '');
     foreach ($cookies as $cookie) {
           $scorers[] = $cookie;
     }
     $scorersCurrentPage = array_slice($scorers, $page * 5 - 5, 5);
+    if (!$username) {
+        return $response->write('You have not been authorized to this page')->withStatus(403);
+    }
     if (empty($scorersCurrentPage)) {
         return $response->write('No items on the list yet (or this page does not exist)')->withStatus(404);
     }
     $flashes = $this->get('flash')->getMessages();
     $params = ['scorers' => $scorersCurrentPage, 'page' => $page, 'flash' => $flashes,
-               'post_form_example' => $router->urlFor('post_form_example')];
+               'post_form_example' => $router->urlFor('post_form_example'),
+               'username' => $username];
     return $this->get('renderer')->render($response, 'scorers.phtml', $params);
 })->setName('index');
 

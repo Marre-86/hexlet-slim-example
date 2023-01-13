@@ -15,10 +15,16 @@
 
 <h1>Top England Goal Scorers</h1>
 
-<form style="padding-left:200px; margin-bottom:8px" action="<?= $post_form_example ?>">
+<form style="padding-left:200px" action="<?= $post_form_example ?>">
     <input type="submit" value="Add User">
 </form>
-
+<div align="right" style="padding-right:200px; margin-bottom:8px">
+  <label>You logged in as <b><?= $username ?></b></label>
+<form action="/" method="post">
+    <input type="hidden" name="logout" value="true">
+    <input type="submit" value="Logout">
+</form>
+</div>
 <table id="racetimes">
     <tr id="firstrow">
       <th>Player</th>
