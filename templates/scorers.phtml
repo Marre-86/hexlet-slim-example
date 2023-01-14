@@ -8,23 +8,28 @@
 <p style="color:chartreuse"><?= $flash['success'][0] ?></p>
 <?php endif; ?>
 
+<?php if ($scorers) : ?>
 <div style="text-align:center">
 <a href="/users2?page=<?= $page + 1 ?>">вперед</a>&nbsp;&nbsp;&nbsp;
 <a href="/users2?page=<?= $page - 1 ?>">назад</a>
 </div>
 
 <h1>Top England Goal Scorers</h1>
+<?php endif; ?>
 
 <form style="padding-left:200px" action="<?= $post_form_example ?>">
     <input type="submit" value="Add User">
 </form>
 <div align="right" style="padding-right:200px; margin-bottom:8px">
-  <label>You logged in as <b><?= $username ?></b></label>
+  <label>You logged in as <b><?= $_SESSION['username'] ?></b></label>
 <form action="/" method="post">
     <input type="hidden" name="logout" value="true">
+    <input type="hidden" name="_METHOD" value="DELETE">
     <input type="submit" value="Logout">
 </form>
 </div>
+
+<?php if ($scorers) : ?>
 <table id="racetimes">
     <tr id="firstrow">
       <th>Player</th>
@@ -46,3 +51,8 @@
     </tr>
    <?php endforeach; ?>
 </table>
+<?php endif; ?>
+
+<?php if (!$scorers) : ?>
+<h3 style="color:firebrick; text-align:center">No items on the list yet</h3>
+<?php endif; ?>

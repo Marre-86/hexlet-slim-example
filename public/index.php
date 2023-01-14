@@ -34,22 +34,25 @@ $router = $app->getRouteCollector()->getRouteParser();
 
 $users = ['mike', 'mishel', 'adel', 'keks', 'kamila'];
 
+$app->delete('/', function ($req, $res) {
+    $_SESSION = [];
+    session_destroy();
+    $params = [];
+    return $this->get('renderer')->render($res, 'main.phtml', $params);
+});
+
 $app->post('/', function ($req, $res) use ($router) {
-    if ($req->getParsedBodyParam('logout') === true) {
-        
-        $_SESSION = [];
-        session_destroy();
-    }
     $login = $req->getParsedBodyParam('login');
     if (in_array($login['codename'], $_SESSION['accepted_login'])) {
         $username = $login['codename'];
-        return $res->withHeader('Set-Cookie', "logged_in_as={$username}; path=/")->withRedirect($router->urlFor('post_form_example'));
+        $_SESSION['username'] = $login['codename'];
+        return $res->withRedirect($router->urlFor('index'));
     } else {
         $errors = [];
         $errors['invalid_login'] = 'This login is not accepted. Try again';
     }
     $params = ['greeting' => 'No mistakes anymore, motherfucker!', 'errors' => $errors];
-    return $this->get('renderer')->render($res->withHeader('Set-Cookie', "logged_in_as=1; path=/; MAX-AGE=-1"), 'main.phtml', $params);
+    return $this->get('renderer')->render($res, 'main.phtml', $params);
 });
 
 $app->get('/', function ($request, $response) use ($router) {
@@ -65,9 +68,9 @@ $app->delete('/users2/{id}', function ($req, $res, $args) use ($router) {       
     $cookies = json_decode($req->getCookieParam('cookie', json_encode([])), true);
     $cookiesDeleted = array();
     foreach ($cookies as $cookie) {
-          if ($cookie['id'] !== $args['id']) {
-              $cookiesDeleted[] = $cookie;
-          }
+        if ($cookie['id'] !== $args['id']) {
+            $cookiesDeleted[] = $cookie;
+        }
     }
     $encoded = json_encode($cookiesDeleted);
     $this->get('flash')->addMessage('success', 'User has been removed');
@@ -97,9 +100,9 @@ $app->patch('/users2/{id}', function ($req, $res, $args) use ($router) {        
 $app->get('/users2/{id}/edit', function ($req, $res, $args) {                            // 5
     $cookies = json_decode($req->getCookieParam('cookie', json_encode([])), true);
     foreach ($cookies as $cookie) {
-          if ($cookie['id'] === $args['id']) {
-              $scorerFound = $cookie;
-          }
+        if ($cookie['id'] === $args['id']) {
+            $scorerFound = $cookie;
+        }
     }
     if (!$scorerFound) {
         return $response->withStatus(405);
@@ -129,21 +132,20 @@ $app->get('/users2', function ($request, $response) use ($router) {             
     $cookies = json_decode($request->getCookieParam('cookie', json_encode([])), true);
     $scorers = array();
     $page = $request->getQueryParam('page', 1);
-    $username = $request->getCookieParam('logged_in_as', '');
     foreach ($cookies as $cookie) {
           $scorers[] = $cookie;
     }
     $scorersCurrentPage = array_slice($scorers, $page * 5 - 5, 5);
-    if (!$username) {
+    if (!$_SESSION['username']) {
         return $response->write('You have not been authorized to this page')->withStatus(403);
     }
-    if (empty($scorersCurrentPage)) {
-        return $response->write('No items on the list yet (or this page does not exist)')->withStatus(404);
+    if (empty($scorersCurrentPage) && $cookies) {
+        return $response->write('This page does not exist')->withStatus(404);
     }
     $flashes = $this->get('flash')->getMessages();
     $params = ['scorers' => $scorersCurrentPage, 'page' => $page, 'flash' => $flashes,
                'post_form_example' => $router->urlFor('post_form_example'),
-               'username' => $username];
+               'username' => $SESSION['username']];
     return $this->get('renderer')->render($response, 'scorers.phtml', $params);
 })->setName('index');
 
@@ -158,9 +160,9 @@ $app->get('/users2/new', function ($request, $response) {                 // 3
 $app->get('/users2/{id}', function ($request, $response, $args) {        // 2 show
     $cookies = json_decode($request->getCookieParam('cookie', json_encode([])), true);
     foreach ($cookies as $cookie) {
-          if ($cookie['id'] === $args['id']) {
-              $scorerFound = $cookie;
-          }
+        if ($cookie['id'] === $args['id']) {
+            $scorerFound = $cookie;
+        }
     }
     if (!$scorerFound) {
         return $response->withStatus(404);
@@ -193,4 +195,3 @@ $app->get('/courses/{id}', function ($request, $response, array $args) {
 });
 
 $app->run();
-
